@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - User Authentication</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        /* Background particles */
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Background overlay */
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            z-index: 2;
+        }
+
+        .register-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+            animation: slideInUp 0.8s ease-out;
+            margin: 1rem;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .register-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+
+        .register-header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .flash-messages {
+            margin-bottom: 1.5rem;
+        }
+
+        .flash-message {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .flash-error {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fecaca;
+        }
+
+        .flash-success {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #bbf7d0;
+        }
+
+        .flash-info {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #bfdbfe;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 1rem;
+        }
+
+        .required {
+            color: #ef4444;
+            font-weight: 700;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-group input:valid {
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+
+        .form-group input:invalid:not(:placeholder-shown) {
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .field-requirements {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+            transition: color 0.3s ease;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            margin-top: 1rem;
+        }
+
+        .btn-register:hover {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-register:active {
+            transform: translateY(0);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .login-link p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .login-link a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .login-link a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #3b82f6;
+            transition: width 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: #2563eb;
+        }
+
+        .login-link a:hover::after {
+            width: 100%;
+        }
+
+        /* Validation states */
+        .field-valid {
+            color: #22c55e !important;
+        }
+
+        .field-invalid {
+            color: #ef4444 !important;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .register-container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            
+            .register-header h1 {
+                font-size: 2rem;
+            }
+            
+            .register-header p {
+                font-size: 1rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .register-container {
+                padding: 1.5rem;
+            }
+            
+            .register-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            body {
+                padding: 1rem 0;
+            }
+        }
+
+        /* Form animation effects */
+        .form-group {
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+        .form-group:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background particles -->
+    <div class="floating-particles"></div>
+    <div class="background-overlay"></div>
+
+    <div class="register-container">
+        <div class="register-header">
+            <h1>Register</h1>
+            <p>Create your account to get started.</p>
+        </div>
+
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <form method="POST" action="{{ url_for('register') }}" class="form-validation">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="username">Username <span class="required">*</span></label>
+                    <input type="text" id="username" name="username" required 
+                           pattern="[a-zA-Z0-9_]{3,20}" 
+                           title="Username must be 3-20 characters, letters, numbers, and underscores only"
+                           placeholder="Enter your username">
+                    <div class="field-requirements">
+                        3-20 characters, letters, numbers, and underscores only
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" 
+                       pattern="[\+]?[0-9\s\-\(\)]{10,15}" 
+                       title="Please enter a valid phone number (10-15 digits)"
+                       placeholder="Enter your phone number">
+                <div class="field-requirements">
+                    Enter your phone number with country code (optional)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address</label>
+                <textarea id="address" name="address" rows="3" 
+                          placeholder="Enter your full address including street, city, state, and postal code"></textarea>
+                <div class="field-requirements">
+                    Your complete address for delivery and contact purposes
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password <span class="required">*</span></label>
+                <input type="password" id="password" name="password" required 
+                       minlength="6" placeholder="Create a strong password">
+                <div class="field-requirements">
+                    At least 6 characters with uppercase, lowercase, and number
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password <span class="required">*</span></label>
+                <input type="password" id="confirm_password" name="confirm_password" required
+                       placeholder="Confirm your password">
+                <div class="field-requirements">
+                    Re-enter your password to confirm
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="{{ url_for('login') }}">Sign in here</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particleContainer = document.querySelector('.floating-particles');
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize particles when page loads
+        document.addEventListener('DOMContentLoaded', createParticles);
+
+        // Client-side validation for better user experience
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const requirements = this.parentElement.querySelector('.field-requirements');
+            
+            let isValid = true;
+            let message = '';
+            
+            if (password.length < 6) {
+                isValid = false;
+                message = 'Password must be at least 6 characters';
+            } else if (!/[A-Z]/.test(password)) {
+                isValid = false;
+                message = 'Password must contain at least one uppercase letter';
+            } else if (!/[a-z]/.test(password)) {
+                isValid = false;
+                message = 'Password must contain at least one lowercase letter';
+            } else if (!/[0-9]/.test(password)) {
+                isValid = false;
+                message = 'Password must contain at least one number';
+            } else {
+                message = 'Password meets all requirements ✓';
+            }
+            
+            requirements.textContent = message;
+            requirements.className = isValid ? 'field-requirements field-valid' : 'field-requirements field-invalid';
+        });
+
+        document.getElementById('confirm_password').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            const requirements = this.parentElement.querySelector('.field-requirements');
+            
+            if (confirmPassword.length > 0) {
+                if (password === confirmPassword) {
+                    requirements.textContent = 'Passwords match ✓';
+                    requirements.className = 'field-requirements field-valid';
+                    this.setCustomValidity('');
+                } else {
+                    requirements.textContent = 'Passwords do not match';
+                    requirements.className = 'field-requirements field-invalid';
+                    this.setCustomValidity('Passwords do not match');
+                }
+            } else {
+                requirements.textContent = 'Re-enter your password to confirm';
+                requirements.className = 'field-requirements';
+                this.setCustomValidity('');
+            }
+        });
+
+        document.getElementById('username').addEventListener('input', function() {
+            const username = this.value;
+            const pattern = /^[a-zA-Z0-9_]{3,20}$/;
+            const requirements = this.parentElement.querySelector('.field-requirements');
+            
+            if (username.length > 0) {
+                if (pattern.test(username)) {
+                    requirements.textContent = 'Username format is valid ✓';
+                    requirements.className = 'field-requirements field-valid';
+                    this.setCustomValidity('');
+                } else {
+                    requirements.textContent = 'Username must be 3-20 characters, letters, numbers, and underscores only';
+                    requirements.className = 'field-requirements field-invalid';
+                    this.setCustomValidity('Username must be 3-20 characters, letters, numbers, and underscores only');
+                }
+            } else {
+                requirements.textContent = '3-20 characters, letters, numbers, and underscores only';
+                requirements.className = 'field-requirements';
+                this.setCustomValidity('');
+            }
+        });
+
+        document.getElementById('phone').addEventListener('input', function() {
+            const phone = this.value;
+            const pattern = /^[\+]?[0-9\s\-\(\)]{10,15}$/;
+            const requirements = this.parentElement.querySelector('.field-requirements');
+            
+            if (phone.length > 0) {
+                if (pattern.test(phone)) {
+                    requirements.textContent = 'Phone number format is valid ✓';
+                    requirements.className = 'field-requirements field-valid';
+                    this.setCustomValidity('');
+                } else {
+                    requirements.textContent = 'Please enter a valid phone number (10-15 digits)';
+                    requirements.className = 'field-requirements field-invalid';
+                    this.setCustomValidity('Please enter a valid phone number');
+                }
+            } else {
+                requirements.textContent = 'Enter your phone number with country code (optional)';
+                requirements.className = 'field-requirements';
+                this.setCustomValidity('');
+            }
+        });
+
+        document.getElementById('email').addEventListener('input', function() {
+            const email = this.value;
+            const requirements = this.parentElement.querySelector('.field-requirements');
+            
+            if (email.length > 0) {
+                if (this.validity.valid) {
+                    requirements.textContent = 'Email format is valid ✓';
+                    requirements.className = 'field-requirements field-valid';
+                } else {
+                    requirements.textContent = 'Please enter a valid email address';
+                    requirements.className = 'field-requirements field-invalid';
+                }
+            } else {
+                requirements.textContent = 'Enter your email address';
+                requirements.className = 'field-requirements';
+            }
+        });
+
+        // Add smooth focus transitions
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Form submission validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match. Please check and try again.');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

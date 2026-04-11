@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Users Database</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nav-links {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .nav-links a {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-right: 10px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: #5a6268;
+        }
+
+        .nav-links a.active {
+            background: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .search-section {
+            padding: 20px 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .users-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .users-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .user-id {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .no-users {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .btn-primary {
+            background: #667eea;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .view-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .view-btn:hover {
+            background: #138496;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .users-table {
+                font-size: 0.8em;
+            }
+            
+            .users-table th,
+            .users-table td {
+                padding: 10px 8px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Database Users</h1>
+            <p>User Management & Database Verification</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="/admin/users" class="active">Active Users</a>
+            <a href="/admin/deleted-users">Deleted Users</a>
+            <a href="/admin/stats">Statistics</a>
+            <a href="/admin/test-connection">Test Connection</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalUsers">{{ users|length }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeUsers">
+                    {{ users|selectattr('is_active', 'equalto', true)|list|length }}
+                </div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="inactiveUsers">
+                    {{ users|selectattr('is_active', 'equalto', false)|list|length }}
+                </div>
+                <div class="stat-label">Inactive Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="deletedUsers">-</div>
+                <div class="stat-label">Deleted Users</div>
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div class="search-section">
+            <div class="actions">
+                <a href="/admin/stats" class="btn btn-info">View Stats</a>
+                <a href="/admin/users/json" class="btn btn-success">Export JSON</a>
+                <a href="/admin/deleted-users" class="btn btn-danger">View Deleted Users</a>
+                <a href="/admin/test-connection" class="btn btn-primary">Test Connection</a>
+                <button onclick="location.reload()" class="refresh-btn">Refresh</button>
+            </div>
+            <input type="text" class="search-box" placeholder="Search users by username or email..." id="searchInput">
+        </div>
+
+        <div class="table-container">
+            {% if users %}
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        {% for user in users %}
+                        <tr>
+                            <td class="user-id">{{ user._id }}</td>
+                            <td><strong>{{ user.username }}</strong></td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                    {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ user.created_at[:19] if user.created_at else 'N/A' }}</td>
+                            <td>{{ user.last_login[:19] if user.last_login else 'Never' }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="view-btn" onclick="viewUser('{{ user._id }}')">View</button>
+                                    <button class="delete-btn" onclick="showDeleteModal('{{ user._id }}', '{{ user.username }}')">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="no-users">
+                    <h3>No users found in the database</h3>
+                    <p>Register some users to see them here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDeleteModal()">&times;</span>
+            <h2>Delete User</h2>
+            <p>Are you sure you want to delete user <strong id="deleteUsername"></strong>?</p>
+            <p>This action will move the user to the deleted users archive.</p>
+            
+            <div class="form-group">
+                <label for="deleteReason">Reason for deletion (optional):</label>
+                <textarea id="deleteReason" rows="3" placeholder="Enter reason for deletion..."></textarea>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete User</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userToDelete = null;
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#usersTableBody tr');
+            
+            rows.forEach(row => {
+                const username = row.cells[1].textContent.toLowerCase();
+                const email = row.cells[2].textContent.toLowerCase();
+                
+                if (username.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // View user function
+        function viewUser(userId) {
+            fetch(`/admin/user/${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showAlert('Error: ' + data.error, 'error');
+                    } else {
+                        // Open user details in a new tab/window or show in modal
+                        console.log('User details:', data);
+                        alert('User details logged to console. You can also implement a detailed view modal here.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error fetching user details', 'error');
+                });
+        }
+
+        // Show delete modal
+        function showDeleteModal(userId, username) {
+            userToDelete = userId;
+            document.getElementById('deleteUsername').textContent = username;
+            document.getElementById('deleteReason').value = '';
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            userToDelete = null;
+        }
+
+        // Confirm delete
+        function confirmDelete() {
+            if (!userToDelete) return;
+            
+            const reason = document.getElementById('deleteReason').value || 'Admin deletion';
+            
+            fetch(`/admin/user/${userToDelete}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    closeDeleteModal();
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showAlert('Error: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('Error deleting user', 'error');
+            });
+        }
+
+        // Show alert function
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type === 'error' ? 'error' : 'success'}`;
+            alert.textContent = message;
+            
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target == modal) {
+                closeDeleteModal();
+            }
+        }
+
+        // Auto-refresh stats every 30 seconds
+        setInterval(function() {
+            fetch('/admin/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalUsers').textContent = data.total_users;
+                    document.getElementById('activeUsers').textContent = data.active_users;
+                    document.getElementById('inactiveUsers').textContent = data.inactive_users;
+                    document.getElementById('deletedUsers').textContent = data.deleted_users;
+                })
+                .catch(error => console.error('Error fetching stats:', error));
+        }, 30000);
+
+        // Initial load of deleted users count
+        fetch('/admin/stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('deletedUsers').textContent = data.deleted_users;
+            })
+            .catch(error => console.error('Error fetching initial stats:', error));
+    </script>
+</body>
+</html>

@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UsedCarValue AI - Smart Car Price Prediction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .background-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            z-index: 1;
+        }
+
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(59, 130, 246, 0.6);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .content-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            max-width: 1400px;
+            width: 100%;
+            padding: 2rem;
+            z-index: 10;
+            position: relative;
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transform: translateZ(50px);
+            animation: slideInLeft 1s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px) translateZ(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) translateZ(50px);
+            }
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+        }
+
+        .tagline {
+            font-size: 1.3rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .main-title {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #cbd5e1;
+            margin-bottom: 3rem;
+            line-height: 1.5;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 1rem 2.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .car-showcase {
+            position: relative;
+            transform-style: preserve-3d;
+            animation: slideInRight 1s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px) rotateY(15deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) rotateY(0deg);
+            }
+        }
+
+        .car-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            transform-style: preserve-3d;
+            animation: rotate3D 20s infinite linear;
+        }
+
+        @keyframes rotate3D {
+            0% { transform: rotateY(0deg) rotateX(5deg); }
+            25% { transform: rotateY(90deg) rotateX(5deg); }
+            50% { transform: rotateY(180deg) rotateX(5deg); }
+            75% { transform: rotateY(270deg) rotateX(5deg); }
+            100% { transform: rotateY(360deg) rotateX(5deg); }
+        }
+
+        .car-image {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            filter: drop-shadow(0 0 30px rgba(59, 130, 246, 0.3));
+        }
+
+        .car-image.active {
+            opacity: 1;
+        }
+
+        .stats-bar {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #3b82f6;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+
+        .features-grid {
+            position: absolute;
+            top: 50%;
+            right: -100px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 1rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 200px;
+            transform: translateX(0);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateX(-10px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .feature-desc {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .nav-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #3b82f6;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #3b82f6;
+        }
+
+        @media (max-width: 768px) {
+            .content-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                text-align: center;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .features-grid {
+                position: static;
+                transform: none;
+                margin-top: 2rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+        /* Footer Styles */
+.footer {
+    background: linear-gradient(135deg, rgba(12, 12, 12, 0.9) 0%, rgba(26, 26, 46, 0.9) 50%, rgba(22, 33, 62, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 4rem 2rem 2rem;
+    margin-top: 8rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.footer-logo {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.footer-description {
+    color: #94a3b8;
+    line-height: 1.6;
+    max-width: 300px;
+}
+
+.footer-social {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.social-link:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.footer-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-column h3 {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.footer-column h3::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 2px;
+}
+
+.footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.footer-links a {
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    padding-left: 0;
+}
+
+.footer-links a::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 2px;
+    background: #3b82f6;
+    transition: width 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: white;
+    padding-left: 15px;
+}
+
+.footer-links a:hover::before {
+    width: 8px;
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-copyright {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.footer-legal {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+}
+
+.footer-legal a {
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.footer-legal a:hover {
+    color: #3b82f6;
+}
+
+/* Newsletter Subscription */
+.newsletter-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.newsletter-input {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 25px;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.newsletter-input::placeholder {
+    color: #94a3b8;
+}
+
+.newsletter-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.newsletter-button {
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border: none;
+    border-radius: 25px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.newsletter-button:hover {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+/* Floating particles for footer */
+.footer-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.footer-particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(59, 130, 246, 0.4);
+    border-radius: 50%;
+    animation: footerFloat 8s infinite linear;
+}
+
+@keyframes footerFloat {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .footer-content {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: 3rem 1rem 1.5rem;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        text-align: center;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    
+    .footer-legal {
+        justify-content: center;
+    }
+    
+    .newsletter-form {
+        flex-direction: column;
+        max-width: 300px;
+        margin: 1rem auto 0;
+    }
+    
+    .footer-social {
+        justify-content: center;
+    }
+}
+    </style>
+</head>
+<body>
+    <nav class="nav-header">
+        <div class="nav-logo">UsedCarValue AI</div>
+        <ul class="nav-links">
+            <li><a href="/pre">Predict Price</a></li>
+           <li><a href="/car/12345678">Details</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero-section">
+        <div class="background-overlay"></div>
+        
+        <div class="floating-particles" id="particles"></div>
+
+        <div class="content-container">
+            <div class="text-content">
+                <div class="logo">UsedCarValue AI</div>
+                <div class="tagline">Powered by Advanced Machine Learning</div>
+                <h1 class="main-title">Predict Your Car's True Worth</h1>
+                <p class="subtitle">Get instant, accurate price predictions for any used car using our AI-powered valuation system. Make smarter buying and selling decisions.</p>
+                
+                <div class="cta-buttons">
+                    <a href="/pre" class="btn-primary">Get Price Prediction</a>
+                    <a href="#learn" class="btn-secondary">Learn More</a>
+                </div>
+            </div>
+
+            <div class="car-showcase">
+                <div class="car-container">
+                    <div class="car-image active" id="car1"></div>
+                    <div class="car-image" id="car2"></div>
+                    <div class="car-image" id="car3"></div>
+                    <div class="car-image" id="car4"></div>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat">
+                        <span class="stat-number">98%</span>
+                        <span class="stat-label">Accuracy</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">50K+</span>
+                        <span class="stat-label">Cars Analyzed</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">2.5s</span>
+                        <span class="stat-label">Avg Response</span>
+                    </div>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <div class="feature-title">AI-Powered</div>
+                        <div class="feature-desc">Advanced ML algorithms for precise predictions</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <div class="feature-title">Instant Results</div>
+                        <div class="feature-desc">Get predictions in seconds, not hours</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <div class="feature-title">Market Data</div>
+                        <div class="feature-desc">Real-time market analysis and trends</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="footer-particles" id="footerParticles"></div>
+    
+    <div class="footer-content">
+        <div class="footer-brand">
+            <div class="footer-logo">UsedCarValue AI</div>
+            <p class="footer-description">
+                Get instant, accurate car price predictions using advanced AI technology. 
+                Make smarter buying and selling decisions with our machine learning platform.
+            </p>
+            <div class="footer-social">
+                <a href="#" class="social-link" aria-label="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                </a>
+                <a href="#" class="social-link" aria-label="Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="social-link" aria-label="Instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="#" class="social-link" aria-label="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-column">
+            <h3>Product</h3>
+            <ul class="footer-links">
+                <li><a href="/pre">Price Prediction</a></li>
+                <li><a href="/car/12345678">Car Comparison</a></li>
+                <li><a href="/market-trends">Market Trends</a></li>
+                <li><a href="/api">API Access</a></li>
+                <li><a href="/features">Features</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-column">
+            <h3>Company</h3>
+            <ul class="footer-links">
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/careers">Careers</a></li>
+                <li><a href="/blog">Blog</a></li>
+                <li><a href="/press">Press</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-column">
+            <h3>Newsletter</h3>
+            <p class="footer-description">Stay updated with the latest car market insights and AI predictions.</p>
+            <form class="newsletter-form">
+                <input type="email" class="newsletter-input" placeholder="Enter your email" required>
+                <button type="submit" class="newsletter-button">Subscribe</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div class="footer-copyright">
+            © 2025 CarValue AI. All rights reserved.
+        </div>
+        <ul class="footer-legal">
+            <li><a href="/privacy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+            <li><a href="/cookies">Cookie Policy</a></li>
+        </ul>
+    </div>
+</footer>
+
+    <script>
+        // Car images rotation
+        const carImages = [
+            'static/c.avif',
+            'static/c6.webp',
+            'static/c7.jpg',
+            'static/c8.webp',
+            'static/c4.avif',
+            
+        ];
+
+        const carElements = [
+            document.getElementById('car1'),
+            document.getElementById('car2'),
+            document.getElementById('car3'),
+            document.getElementById('car4')
+        ];
+
+        // Set initial car images
+        carElements.forEach((el, index) => {
+            el.style.backgroundImage = `url(${carImages[index]})`;
+        });
+
+        let currentCar = 0;
+
+        function switchCar() {
+            // Remove active class from current car
+            carElements[currentCar].classList.remove('active');
+            
+            // Move to next car
+            currentCar = (currentCar + 1) % carElements.length;
+            
+            // Add active class to new car
+            carElements[currentCar].classList.add('active');
+        }
+
+        // Switch cars every 5 seconds
+        setInterval(switchCar, 5000);
+
+        // Create floating particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (Math.random() * 3 + 6) + 's';
+            document.getElementById('particles').appendChild(particle);
+
+            // Remove particle after animation
+            setTimeout(() => {
+                particle.remove();
+            }, 9000);
+        }
+
+        // Create particles continuously
+        setInterval(createParticle, 300);
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Add parallax effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.hero-section');
+            const speed = scrolled * 0.5;
+            parallax.style.transform = `translateY(${speed}px)`;
+        });
+
+        // Add mouse movement parallax
+        document.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
+            
+            const carShowcase = document.querySelector('.car-showcase');
+            const textContent = document.querySelector('.text-content');
+            
+            carShowcase.style.transform = `translateX(${mouseX * 20}px) translateY(${mouseY * 10}px)`;
+            textContent.style.transform = `translateX(${mouseX * -10}px) translateY(${mouseY * -5}px) translateZ(50px)`;
+        });
+    </script>
+</body>
+</html>

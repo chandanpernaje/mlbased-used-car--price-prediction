@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Price Prediction Results</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+       * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 30%, #16213e 70%, #0f0f23 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #ffffff;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* 3D Car Background Animation */
+.car-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.car-animation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.05) 0%, transparent 50%);
+    animation: backgroundShift 20s ease-in-out infinite;
+}
+
+@keyframes backgroundShift {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* Rotating Car Images */
+.floating-car {
+    position: absolute;
+    width: 120px;
+    height: 80px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.08;
+    animation: float3D 25s infinite linear;
+    filter: blur(0.5px);
+}
+
+.floating-car:nth-child(1) { 
+    top: 10%; 
+    left: -150px; 
+    animation-delay: 0s;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><rect width="120" height="80" fill="%233b82f6" opacity="0.6" rx="10"/><rect x="10" y="20" width="100" height="40" fill="%236366f1" rx="8"/><circle cx="25" cy="65" r="8" fill="%231e40af"/><circle cx="95" cy="65" r="8" fill="%231e40af"/></svg>');
+}
+
+.floating-car:nth-child(2) { 
+    top: 35%; 
+    left: -150px; 
+    animation-delay: 8s;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><rect width="120" height="80" fill="%238b5cf6" opacity="0.6" rx="10"/><rect x="10" y="20" width="100" height="40" fill="%237c3aed" rx="8"/><circle cx="25" cy="65" r="8" fill="%235b21b6"/><circle cx="95" cy="65" r="8" fill="%235b21b6"/></svg>');
+}
+
+.floating-car:nth-child(3) { 
+    top: 60%; 
+    left: -150px; 
+    animation-delay: 16s;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><rect width="120" height="80" fill="%2306b6d4" opacity="0.6" rx="10"/><rect x="10" y="20" width="100" height="40" fill="%230891b2" rx="8"/><circle cx="25" cy="65" r="8" fill="%230e7490"/><circle cx="95" cy="65" r="8" fill="%230e7490"/></svg>');
+}
+
+@keyframes float3D {
+    0% { 
+        transform: translateX(-200px) rotateY(0deg) rotateZ(0deg) scale(0.8); 
+        opacity: 0;
+    }
+    10% { 
+        opacity: 0.08;
+    }
+    50% { 
+        transform: translateX(50vw) rotateY(180deg) rotateZ(5deg) scale(1.2); 
+        opacity: 0.12;
+    }
+    90% { 
+        opacity: 0.08;
+    }
+    100% { 
+        transform: translateX(calc(100vw + 200px)) rotateY(360deg) rotateZ(0deg) scale(0.8); 
+        opacity: 0;
+    }
+}
+
+/* Container with Glass Morphism */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 30px;
+    box-shadow: 
+        0 40px 80px rgba(0, 0, 0, 0.4),
+        0 0 50px rgba(59, 130, 246, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+.container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4, #3b82f6);
+    background-size: 300% 100%;
+    animation: gradientSlide 4s ease infinite;
+    border-radius: 30px 30px 0 0;
+}
+
+@keyframes gradientSlide {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Futuristic Header */
+.header {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+    color: white;
+    padding: 50px;
+    text-align: center;
+    border-radius: 25px;
+    margin: -2.5rem -2.5rem 3rem -2.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, 
+        transparent, 
+        rgba(59, 130, 246, 0.1), 
+        transparent, 
+        rgba(139, 92, 246, 0.1), 
+        transparent);
+    transform: rotate(45deg);
+    animation: headerShine 6s infinite;
+}
+
+@keyframes headerShine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.header h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+    text-shadow: 
+        0 0 20px rgba(59, 130, 246, 0.5),
+        0 0 40px rgba(59, 130, 246, 0.3),
+        0 0 60px rgba(59, 130, 246, 0.1);
+    position: relative;
+    z-index: 2;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffffff, #e2e8f0, #cbd5e1);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header p {
+    font-size: 1.3rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 2;
+    color: #cbd5e1;
+}
+
+.error-header {
+    background: linear-gradient(135deg, #e17055, #d63031);
+}
+
+/* Result Container */
+.result-container {
+    padding: 30px 0;
+}
+
+/* Enhanced Price Card */
+.price-card {
+    background: linear-gradient(135deg, 
+        rgba(253, 121, 168, 0.15) 0%, 
+        rgba(232, 67, 147, 0.15) 50%, 
+        rgba(147, 51, 234, 0.15) 100%);
+    color: white;
+    padding: 50px;
+    border-radius: 25px;
+    text-align: center;
+    margin-bottom: 40px;
+    box-shadow: 
+        0 25px 50px rgba(232, 67, 147, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.price-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.05), 
+        transparent);
+    transform: translateX(-100%);
+    animation: cardShimmer 3s infinite;
+}
+
+@keyframes cardShimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.price-value {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 15px;
+    text-shadow: 
+        0 0 20px rgba(253, 121, 168, 0.6),
+        0 0 40px rgba(232, 67, 147, 0.4);
+    position: relative;
+    z-index: 2;
+    background: linear-gradient(135deg, #fd79a8, #e84393, #9333ea);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.price-label {
+    font-size: 1.3rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 2;
+    color: #e2e8f0;
+}
+
+/* Enhanced Confidence Bar */
+.confidence-bar {
+    background: rgba(255, 255, 255, 0.1);
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 20px;
+    position: relative;
+    z-index: 2;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.confidence-fill {
+    background: linear-gradient(90deg, #00b894, #00a085, #3b82f6);
+    height: 100%;
+    width: 90%;
+    border-radius: 6px;
+    animation: confidencePulse 2s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(0, 184, 148, 0.5);
+}
+
+@keyframes confidencePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Enhanced Details Grid */
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.detail-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.detail-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+    border-radius: 20px 20px 0 0;
+}
+
+.detail-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.detail-card h3 {
+    color: #f1f5f9;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detail-card h3 i {
+    color: #3b82f6;
+    font-size: 1.1rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}
+
+.detail-value {
+    color: #f1f5f9;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+/* Enhanced Metrics Card */
+.metrics-card {
+    background: linear-gradient(135deg, 
+        rgba(116, 185, 255, 0.15) 0%, 
+        rgba(9, 132, 227, 0.15) 100%);
+    color: white;
+    padding: 35px;
+    border-radius: 25px;
+    margin-bottom: 40px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 20px 40px rgba(116, 185, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.metrics-card h3 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.4rem;
+    color: #e2e8f0;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 25px;
+    text-align: center;
+}
+
+.metric-item {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.metric-item:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.metric-item h4 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: #74b9ff;
+    font-weight: 800;
+}
+
+.metric-item p {
+    opacity: 0.9;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Enhanced Alert Cards */
+.alerts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.alert-card {
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 15px;
+}
+
+.alert-critical {
+    background: linear-gradient(135deg, 
+        rgba(239, 68, 68, 0.15) 0%, 
+        rgba(185, 28, 28, 0.15) 100%);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, 
+        rgba(245, 158, 11, 0.15) 0%, 
+        rgba(217, 119, 6, 0.15) 100%);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, 
+        rgba(34, 197, 94, 0.15) 0%, 
+        rgba(21, 128, 61, 0.15) 100%);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* Enhanced Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 18px 35px;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.2), 
+        transparent);
+    transition: left 0.6s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+    color: white;
+    box-shadow: 
+        0 15px 30px rgba(59, 130, 246, 0.4),
+        0 0 0 0 rgba(59, 130, 246, 0.5);
+}
+
+.btn-primary:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+        0 20px 40px rgba(59, 130, 246, 0.5),
+        0 0 20px rgba(59, 130, 246, 0.7);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Enhanced Error Card */
+.error-card {
+    background: linear-gradient(135deg, 
+        rgba(253, 121, 168, 0.15) 0%, 
+        rgba(232, 67, 147, 0.15) 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    margin-bottom: 40px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(253, 121, 168, 0.3);
+    box-shadow: 0 20px 40px rgba(232, 67, 147, 0.2);
+}
+
+.error-card h2 {
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+    color: #fca5a5;
+}
+
+.error-message {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 12px;
+    margin: 25px 0;
+    font-family: 'Courier New', monospace;
+    color: #fecaca;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Insurance Status Enhancement */
+.insurance-valid {
+    color: #86efac !important;
+    text-shadow: 0 0 10px rgba(134, 239, 172, 0.5);
+}
+
+.insurance-expired {
+    color: #fca5a5 !important;
+    text-shadow: 0 0 10px rgba(252, 165, 165, 0.5);
+}
+
+/* Loading Animation Enhancement */
+.loading {
+    display: none;
+    text-align: center;
+    margin: 30px 0;
+    color: #cbd5e1;
+}
+
+.spinner {
+    border: 4px solid rgba(59, 130, 246, 0.2);
+    border-top: 4px solid #3b82f6;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin3D 1s linear infinite;
+    margin: 0 auto 20px;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+@keyframes spin3D {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+    .details-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .price-value {
+        font-size: 2.5rem;
+    }
+    
+    .header h1 {
+        font-size: 2.5rem;
+    }
+    
+    .container {
+        padding: 1.5rem;
+    }
+
+    .floating-car {
+        width: 80px;
+        height: 50px;
+    }
+    
+    .btn {
+        padding: 15px 25px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .price-value {
+        font-size: 2rem;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .detail-card {
+        padding: 20px;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Error State -->
+        {% if error %}
+        <div class="header error-header">
+            <h1><i class="fas fa-exclamation-triangle"></i> Prediction Error</h1>
+            <p>We encountered an issue processing your request</p>
+        </div>
+
+        <div class="result-container">
+            <div class="error-card">
+                <h2><i class="fas fa-times-circle"></i> Error Details</h2>
+                <div class="error-message">
+                    {{ error }}
+                </div>
+                <p>Please check your input values and try again.</p>
+            </div>
+
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Try Again
+                </a>
+            </div>
+        </div>
+        
+        <!-- Success State -->
+        {% else %}
+        <div class="header">
+            <h1><i class="fas fa-check-circle"></i> Price Prediction Complete</h1>
+            <p>Based on advanced machine learning analysis</p>
+        </div>
+
+        <div class="result-container">
+            <div class="price-card">
+                <div class="price-value">₹{{ "{:,.0f}".format(predicted_price) }}</div>
+                <div class="price-label">Estimated Market Value</div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill"></div>
+                </div>
+                <p style="margin-top: 10px; opacity: 0.9;">{{ prediction_result.confidence_range }}</p>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="alerts-grid">
+                {% for alert in real_time_info.alerts %}
+                <div class="alert-card alert-{{ alert.type }}">
+                    <h3><i class="fas fa-{{ alert.type == 'critical' and 'exclamation-triangle' or alert.type == 'warning' and 'exclamation-circle' or 'check-circle' }}"></i> {{ alert.title }}</h3>
+                    <p>{{ alert.message }}</p>
+                    <p><strong>Action:</strong> {{ alert.action }}</p>
+                    <p><strong>Estimated Cost:</strong> {{ alert.estimated_cost }}</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="metrics-card">
+                <h3 style="text-align: center; margin-bottom: 20px;">
+                    <i class="fas fa-chart-line"></i> Key Metrics
+                </h3>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <h4>{{ car_age }}</h4>
+                        <p>Years Old</p>
+                    </div>
+                    <div class="metric-item">
+                        <h4>{{ "{:,.0f}".format(km_driven) }}</h4>
+                        <p>KM Driven</p>
+                    </div>
+                    <div class="metric-item">
+                        <h4>{{ mileage }}</h4>
+                        <p>KMPL</p>
+                    </div>
+                    <div class="metric-item">
+                        <h4>{{ max_power }}</h4>
+                        <p>BHP</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-card">
+                    <h3><i class="fas fa-car"></i> Vehicle Details</h3>
+                    {% if brand %}
+                    <div class="detail-item">
+                        <span class="detail-label">Brand:</span>
+                        <span class="detail-value">{{ brand }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-item">
+                        <span class="detail-label">Year:</span>
+                        <span class="detail-value">{{ year }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Kilometers:</span>
+                        <span class="detail-value">{{ "{:,.0f}".format(km_driven) }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Fuel Type:</span>
+                        <span class="detail-value">{{ fuel }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Transmission:</span>
+                        <span class="detail-value">{{ transmission }}</span>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3><i class="fas fa-cogs"></i> Engine Specifications</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Engine:</span>
+                        <span class="detail-value">{{ engine }} CC</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Max Power:</span>
+                        <span class="detail-value">{{ max_power }} BHP</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Torque:</span>
+                        <span class="detail-value">{{ torque_value }} Nm</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Mileage:</span>
+                        <span class="detail-value">{{ mileage }} KMPL</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Seats:</span>
+                        <span class="detail-value">{{ seats }}</span>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3><i class="fas fa-user"></i> Seller Information</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Seller Type:</span>
+                        <span class="detail-value">{{ seller_type }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Owner:</span>
+                        <span class="detail-value">{{ owner }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Car Age:</span>
+                        <span class="detail-value">{{ car_age }} years</span>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3><i class="fas fa-shield-alt"></i> Insurance Details</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value {{ 'insurance-expired' if real_time_info.insurance.expired else 'insurance-valid' }}">
+                            {{ real_time_info.insurance.status }}
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Provider:</span>
+                        <span class="detail-value">{{ real_time_info.insurance.provider }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Expiry Date:</span>
+                        <span class="detail-value">{{ real_time_info.insurance.expiry_date }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Days Remaining:</span>
+                        <span class="detail-value">{{ real_time_info.insurance.days_remaining }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Premium Estimate:</span>
+                        <span class="detail-value">{{ real_time_info.insurance.premium_estimate }}</span>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3><i class="fas fa-info-circle"></i> Additional Info</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Model Accuracy:</span>
+                        <span class="detail-value">90.2%</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Avg Error:</span>
+                        <span class="detail-value">₹57,453</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Prediction Date:</span>
+                        <span class="detail-value">{{ prediction_date }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Compliance Score:</span>
+                        <span class="detail-value">{{ real_time_info.compliance_score }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Comparison Chart -->
+            {% if price_chart %}
+            <div class="detail-card">
+                <h3><i class="fas fa-chart-bar"></i> Price Comparison</h3>
+                <img src="data:image/png;base64,{{ price_chart }}" alt="Price Comparison Chart" style="width: 100%; border-radius: 10px;">
+            </div>
+            {% endif %}
+
+            <div class="action-buttons">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-calculator"></i> New Prediction
+                </a>
+                <button onclick="window.print()" class="btn btn-secondary">
+                    <i class="fas fa-print"></i> Print Results
+                </button>
+                <button onclick="shareResults()" class="btn btn-secondary">
+                    <i class="fas fa-share"></i> Share
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function shareResults() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Car Price Prediction',
+                    text: 'Check out my car price prediction results!',
+                    url: window.location.href
+                });
+            } else {
+                const url = window.location.href;
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Link copied to clipboard!');
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingElements = document.querySelectorAll('.loading');
+            loadingElements.forEach(el => {
+                el.style.display = 'none';
+            });
+        });
+
+        window.addEventListener('load', function() {
+            const container = document.querySelector('.container');
+            container.style.opacity = '0';
+            container.style.transform = 'translateY(20px)';
+            container.style.transition = 'all 0.6s ease';
+            
+            setTimeout(() => {
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>

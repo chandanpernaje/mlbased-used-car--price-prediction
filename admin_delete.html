@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Deleted Users</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nav-links {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .nav-links a {
+            display: inline-block;
+            padding: 8px 16px;
+            margin-right: 10px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: #5a6268;
+        }
+
+        .nav-links a.active {
+            background: #dc3545;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .search-section {
+            padding: 20px 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #dc3545;
+        }
+
+        .deleted-users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        .deleted-users-table th,
+        .deleted-users-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .deleted-users-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .deleted-users-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .user-id {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .deletion-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .no-users {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .refresh-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: #5a6268;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .reason-column {
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+
+        .deleted-by-column {
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .restore-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .restore-btn:hover {
+            background: #1e7e34;
+        }
+
+        .details-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .details-btn:hover {
+            background: #138496;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+
+        .user-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .user-details pre {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .deleted-users-table {
+                font-size: 0.8em;
+            }
+            
+            .deleted-users-table th,
+            .deleted-users-table td {
+                padding: 10px 8px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗑️ Deleted Users Archive</h1>
+            <p>View and Manage Deleted User Records</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="/admin/users">Active Users</a>
+            <a href="/admin/deleted-users" class="active">Deleted Users</a>
+            <a href="/admin/stats">Statistics</a>
+            <a href="/admin/test-connection">Test Connection</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalDeletedUsers">{{ deleted_users|length }}</div>
+                <div class="stat-label">Total Deleted Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="recentDeletions">
+                    {% set recent_count = deleted_users|selectattr('deleted_at', 'ge', (now() - timedelta(days=7)).isoformat())|list|length %}
+                    {{ recent_count }}
+                </div>
+                <div class="stat-label">This Week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayDeletions">
+                    {% set today_count = deleted_users|selectattr('deleted_at', 'ge', now().date().isoformat())|list|length %}
+                    {{ today_count }}
+                </div>
+                <div class="stat-label">Today</div>
+            </div>
+        </div>
+
+        <div class="search-section">
+            <div class="actions">
+                <a href="/admin/deleted-users/json" class="btn btn-info">Export JSON</a>
+                <button onclick="location.reload()" class="refresh-btn">Refresh</button>
+            </div>
+            <input type="text" class="search-box" placeholder="Search deleted users by username or email..." id="searchInput">
+        </div>
+
+        <div class="table-container">
+            {% if deleted_users %}
+                <table class="deleted-users-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Originally Created</th>
+                            <th>Deleted At</th>
+                            <th>Deleted By</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deletedUsersTableBody">
+                        {% for user in deleted_users %}
+                        <tr>
+                            <td class="user-id">{{ user.deleted_user_id }}</td>
+                            <td><strong>{{ user.username }}</strong></td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.original_created_at[:19] if user.original_created_at else 'N/A' }}</td>
+                            <td>{{ user.deleted_at[:19] if user.deleted_at else 'N/A' }}</td>
+                            <td class="deleted-by-column">{{ user.deleted_by }}</td>
+                            <td class="reason-column">{{ user.reason }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="restore-btn" onclick="restoreUser('{{ user.deleted_user_id }}', '{{ user.username }}')">
+                                        Restore
+                                    </button>
+                                    <button class="details-btn" onclick="showUserDetails('{{ user._id }}')">
+                                        Details
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="no-users">
+                    <h3>No deleted users found</h3>
+                    <p>User deletions will appear here when they occur.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal for user details -->
+    <div id="userDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>User Details</h2>
+            <div id="userDetailsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#deletedUsersTableBody tr');
+            
+            rows.forEach(row => {
+                const username = row.cells[1].textContent.toLowerCase();
+                const email = row.cells[2].textContent.toLowerCase();
+                
+                if (username.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Restore user function
+        function restoreUser(userId, username) {
+            if (confirm(`Are you sure you want to restore user "${username}"?`)) {
+                fetch(`/admin/user/${userId}/restore`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error restoring user');
+                });
+            }
+        }
+
+        // Show user details
+        function showUserDetails(deletionId) {
+            fetch(`/admin/deleted-users/json`)
+                .then(response => response.json())
+                .then(data => {
+                    const user = data.find(u => u._id === deletionId);
+                    if (user) {
+                        const content = `
+                            <div class="user-details">
+                                <h3>Deletion Information</h3>
+                                <p><strong>Deleted At:</strong> ${user.deleted_at}</p>
+                                <p><strong>Deleted By:</strong> ${user.deleted_by}</p>
+                                <p><strong>Reason:</strong> ${user.reason}</p>
+                                
+                                <h3>Original User Data</h3>
+                                <pre>${JSON.stringify(user.user_data, null, 2)}</pre>
+                            </div>
+                        `;
+                        document.getElementById('userDetailsContent').innerHTML = content;
+                        document.getElementById('userDetailsModal').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error fetching user details');
+                });
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('userDetailsModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('userDetailsModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Auto-refresh stats every 30 seconds
+        setInterval(function() {
+            fetch('/admin/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalDeletedUsers').textContent = data.deleted_users;
+                    // Update other stats if needed
+                })
+                .catch(error => console.error('Error fetching stats:', error));
+        }, 30000);
+    </script>
+</body>
+</html>
