@@ -37,7 +37,6 @@ CORS(app)  # Enable CORS for API endpoints
 # Initialize database and auth
 db = Database()
 auth = Auth(db)
-marketplace = CarMarketplace(db)
 app.register_blueprint(admin_bp)
 
 # Configure logging
@@ -464,6 +463,9 @@ CAR_DATABASE = {
         'Electric': {'price': 8.50, 'unit': '₹/kWh'}
     }
 }
+
+# Initialize marketplace
+marketplace = CarMarketplace(db)
 
 def load_models():
     global model, scaler, encoders, feature_columns
