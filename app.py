@@ -469,13 +469,13 @@ def load_models():
         scaler = joblib.load("car_price_scaler.pkl")
         encoders = joblib.load("label_encoders.pkl")
         feature_columns = joblib.load("feature_columns.pkl")
-        logger.info("✅ All models loaded successfully!")
+        logger.info("[OK] All models loaded successfully!")
         return True
     except FileNotFoundError as e:
-        logger.error(f"❌ Model file not found: {e}")
+        logger.error(f"[ERROR] Model file not found: {e}")
         return False
     except Exception as e:
-        logger.error(f"❌ Error loading models: {e}")
+        logger.error(f"[ERROR] Error loading models: {e}")
         return False
 
 def generate_registration_number():
@@ -1411,8 +1411,8 @@ def model_info():
 
 if __name__ == '__main__':
     if load_models():
-        print("🚀 Starting Enhanced Car Marketplace and Price Predictor...")
-        print("📊 Available endpoints:")
+        print("Starting Enhanced Car Marketplace and Price Predictor...")
+        print("Available endpoints:")
         print("  - GET  /                           : Web interface (entry)")
         print("  - GET  /hr                        : Home page")
         print("  - GET  /pre                       : Price prediction form")
@@ -1423,16 +1423,16 @@ if __name__ == '__main__':
         print("  - GET  /api/listings              : Get marketplace listings")
         print("  - GET  /health                    : Health check")
         print("  - GET  /model-info                : Model and database information")
-        print("\n🔥 Features:")
-        print("  ✅ Real-time simulated OLX-like listings")
-        print("  ✅ Car price prediction with confidence intervals")
-        print("  ✅ Real-time insurance, PUC, RC, and fitness status")
-        print("  ✅ Compliance alerts and warnings")
-        print("  ✅ State-wise RTO information")
-        print("  ✅ Price comparison visualization")
+        print("\nFeatures:")
+        print("  [OK] Real-time simulated OLX-like listings")
+        print("  [OK] Car price prediction with confidence intervals")
+        print("  [OK] Real-time insurance, PUC, RC, and fitness status")
+        print("  [OK] Compliance alerts and warnings")
+        print("  [OK] State-wise RTO information")
+        print("  [OK] Price comparison visualization")
         app.run(debug=True, host='0.0.0.0', port=5000)
     else:
-        print("❌ Failed to load models. Please ensure model files exist.")
+        print("[ERROR] Failed to load models. Please ensure model files exist.")
         print("Required files:")
         print("  - best_car_price_model.pkl")
         print("  - car_price_scaler.pkl")
