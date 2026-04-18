@@ -467,10 +467,11 @@ CAR_DATABASE = {
 def load_models():
     global model, scaler, encoders, feature_columns
     try:
-        model = joblib.load("best_car_price_model.pkl")
-        scaler = joblib.load("car_price_scaler.pkl")
-        encoders = joblib.load("label_encoders.pkl")
-        feature_columns = joblib.load("feature_columns.pkl")
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        model = joblib.load(os.path.join(base_path, "best_car_price_model.pkl"))
+        scaler = joblib.load(os.path.join(base_path, "car_price_scaler.pkl"))
+        encoders = joblib.load(os.path.join(base_path, "label_encoders.pkl"))
+        feature_columns = joblib.load(os.path.join(base_path, "feature_columns.pkl"))
         logger.info("[OK] All models loaded successfully!")
         return True
     except FileNotFoundError as e:
@@ -479,6 +480,9 @@ def load_models():
     except Exception as e:
         logger.error(f"[ERROR] Error loading models: {e}")
         return False
+
+# Load models on import
+load_models()
 
 def generate_registration_number():
     states = list(CAR_DATABASE['registration_patterns'].keys())
@@ -1412,8 +1416,7 @@ def model_info():
     return jsonify(info)
 
 if __name__ == '__main__':
-    if load_models():
-        print("Starting Enhanced Car Marketplace and Price Predictor...")
+    print("Starting Enhanced Car Marketplace and Price Predictor...")
         print("Available endpoints:")
         print("  - GET  /                           : Web interface (entry)")
         print("  - GET  /hr                        : Home page")

@@ -18,16 +18,18 @@ class Database:
     def connect(self):
         """Connect to MongoDB database"""
         try:
-            self.client = MongoClient(self.connection_string)
+            # Use a shorter timeout for serverless environments
+            self.client = MongoClient(self.connection_string, serverSelectionTimeoutMS=5000)
             # Test connection
             self.client.admin.command('ping')
             self.db = self.client[self.database_name]
             self.users_collection = self.db['users']
             self.cars_collection = self.db['cars']
             print("Connected to MongoDB successfully")
-        except ConnectionFailure:
-            print("Failed to connect to MongoDB")
-            raise
+        except Exception as e:
+            print(f"Warning: Failed to connect to MongoDB: {e}")
+            # Don't raise, let the app start so we can see error logs
+            self.db = None
     
     # USER MANAGEMENT METHODS
     def create_user(self, user_data):
