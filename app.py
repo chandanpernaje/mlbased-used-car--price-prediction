@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 from urllib.parse import quote
 import io
 import base64
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
