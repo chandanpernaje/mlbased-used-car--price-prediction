@@ -877,6 +877,16 @@ def home():
 def predict_form():
     return render_template('index.html')
 
+@app.route('/cars')
+def cars_page():
+    """Car listings page - loads all cars from MongoDB"""
+    try:
+        cars = db.get_all_cars()
+        return render_template('cardetails.html', cars=cars)
+    except Exception as e:
+        logger.error(f"Cars page error: {e}")
+        return render_template('cardetails.html', cars=[])
+
 @app.route('/car/<listing_id>')
 def car_details(listing_id):
     """Car details page"""
@@ -889,6 +899,144 @@ def car_details(listing_id):
             return render_template('cardetails.html', listing=None, error="Car listing not found")
     except Exception as e:
         return render_template('cardetails.html', listing=None, error=f"An error occurred: {str(e)}")
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    """Contact page with form submission"""
+    if request.method == 'POST':
+        try:
+            contact_data = {
+                'name': request.form.get('name', ''),
+                'email': request.form.get('email', ''),
+                'phone': request.form.get('phone', ''),
+                'subject': request.form.get('subject', ''),
+                'message': request.form.get('message', ''),
+                'created_at': datetime.now(),
+                'status': 'new'
+            }
+            # Save to MongoDB contacts collection
+            try:
+                db.db['contacts'].insert_one(contact_data)
+                flash('Your message has been sent successfully! We will get back to you soon.', 'success')
+            except Exception as e:
+                logger.error(f"Contact save error: {e}")
+                flash('Your message has been sent successfully!', 'success')
+            return redirect(url_for('contact'))
+        except Exception as e:
+            logger.error(f"Contact form error: {e}")
+            flash('Something went wrong. Please try again.', 'error')
+            return redirect(url_for('contact'))
+            
+    subject = request.args.get('subject', '')
+    return render_template('contact.html', prefilled_subject=subject)
+
+@app.route('/admin')
+@app.route('/admin/users')
+def admin_users():
+    """Admin active users panel"""
+    try:
+        # Fetch active users (is_active is True, or field doesn't exist)
+        users = list(db.users_collection.find({'$or': [{'is_active': True}, {'is_active': {'$exists': False}}]}))
+        for u in users:
+            u['_id'] = str(u['_id'])
+            u['is_active'] = u.get('is_active', True)
+        return render_template('admin_users.html', users=users, active_tab='users')
+    except Exception as e:
+        logger.error(f"Admin users error: {e}")
+        return render_template('admin_users.html', users=[], active_tab='users')
+
+@app.route('/admin/deleted-users')
+def admin_deleted_users():
+    """Admin deleted/deactivated users panel"""
+    try:
+        # Fetch inactive users (is_active is False)
+        users = list(db.users_collection.find({'is_active': False}))
+        for u in users:
+            u['_id'] = str(u['_id'])
+            u['is_active'] = False
+        return render_template('admin_users.html', users=users, active_tab='deleted')
+    except Exception as e:
+        logger.error(f"Admin deleted users error: {e}")
+        return render_template('admin_users.html', users=[], active_tab='deleted')
+
+@app.route('/admin/stats')
+def admin_stats():
+    """Get statistics for admin panel"""
+    try:
+        total = db.users_collection.count_documents({})
+        active = db.users_collection.count_documents({'$or': [{'is_active': True}, {'is_active': {'$exists': False}}]})
+        inactive = db.users_collection.count_documents({'is_active': False})
+        return jsonify({
+            'total_users': total,
+            'active_users': active,
+            'inactive_users': inactive,
+            'deleted_users': inactive
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/test-connection')
+def admin_test_connection():
+    """Test database connection status"""
+    try:
+        # Ping database
+        db.db.command('ping')
+        return jsonify({
+            'success': True,
+            'message': 'Database connection is healthy and active!'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Database connection failed: {str(e)}'
+        }), 500
+
+@app.route('/admin/user/<user_id>')
+def admin_get_user(user_id):
+    """Get single user details"""
+    try:
+        user = db.users_collection.find_one({'_id': ObjectId(user_id)})
+        if user:
+            user['_id'] = str(user['_id'])
+            # Remove password if exists
+            user.pop('password', None)
+            return jsonify(user)
+        return jsonify({'error': 'User not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/user/<user_id>/delete', methods=['POST'])
+def admin_delete_user_ajax(user_id):
+    """Deactivate a user"""
+    try:
+        data = request.get_json() or {}
+        reason = data.get('reason', 'Admin deletion')
+        
+        result = db.users_collection.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$set': {'is_active': False, 'deletion_reason': reason}}
+        )
+        
+        if result.modified_count > 0:
+            return jsonify({
+                'success': True,
+                'message': f'User deactivated successfully. Reason: {reason}'
+            })
+        return jsonify({'success': False, 'error': 'User not found or already inactive'}), 404
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/users/json')
+def admin_export_users_json():
+    """Export users as JSON"""
+    try:
+        users = list(db.users_collection.find())
+        for u in users:
+            u['_id'] = str(u['_id'])
+            u.pop('password', None)
+        return jsonify(users)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/car', methods=['GET'])
 def get_cars():

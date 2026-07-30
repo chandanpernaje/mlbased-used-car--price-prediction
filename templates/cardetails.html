@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Car Listings - AutoMax</title>
-  
+    <title>Car Listings - UsedCarValue AI</title>
 </head>
   <style>
         * {
@@ -65,10 +64,9 @@
             color: white;
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.3s ease;
+            transition: all 0.3s ease;
             padding: 0.5rem 1rem;
             border-radius: 25px;
-            transition: all 0.3s ease;
         }
 
         .nav-links a:hover {
@@ -142,6 +140,11 @@
             font-size: 0.9rem;
         }
 
+        .filter-select option {
+            background: #1a1a2e;
+            color: white;
+        }
+
         .filter-select:focus, .filter-input:focus {
             outline: none;
             border-color: #3b82f6;
@@ -162,6 +165,13 @@
             overflow: hidden;
             transition: all 0.3s ease;
             cursor: pointer;
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .car-card:hover {
@@ -176,6 +186,17 @@
             background-size: cover;
             background-position: center;
             position: relative;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .car-image-placeholder {
+            width: 100%;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+            font-size: 4rem;
         }
 
         .car-overlay {
@@ -230,6 +251,10 @@
         .action-btn:hover {
             background: rgba(59, 130, 246, 0.3);
             transform: scale(1.1);
+        }
+
+        .action-btn.favorited {
+            background: rgba(239, 68, 68, 0.5);
         }
 
         .car-content {
@@ -348,6 +373,42 @@
             box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
         }
 
+        .load-more-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading spinner */
+        .loading-container {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .no-cars-message {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .no-cars-message .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Modal */
         .car-modal {
             position: fixed;
             top: 0;
@@ -418,6 +479,11 @@
             background-position: center;
             border-radius: 15px;
             margin-bottom: 1.5rem;
+            background-color: rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
         }
 
         .modal-details {
@@ -441,6 +507,53 @@
         .modal-spec-value {
             color: white;
             font-weight: 600;
+        }
+
+        .modal-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-tag {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            padding: 0.3rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        /* Contact toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(16, 185, 129, 0.9);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            z-index: 3000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
         }
 
         @media (max-width: 768px) {
@@ -467,16 +580,26 @@
             .nav-links {
                 display: none;
             }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
         }
     </style>
 <body>
     <div class="background-overlay"></div>
     
     <nav class="nav-header">
-        <div class="nav-logo">AutoMax</div>
+        <a href="/hr" style="text-decoration:none;"><div class="nav-logo">UsedCarValue AI</div></a>
         <ul class="nav-links">
             <li><a href="/hr">Home</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="/pre">Predict Price</a></li>
+            <li><a href="/cars">Cars</a></li>
+            <li><a href="/contact">Contact</a></li>
         </ul>
     </nav>
 
@@ -484,6 +607,7 @@
         <div class="page-header">
             <h1 class="page-title">Premium Car Collection</h1>
             <p class="page-subtitle">Discover your perfect car from our extensive collection of premium vehicles</p>
+            <p id="carCount" style="color: #3b82f6; font-weight: 600;"></p>
         </div>
 
         <div class="filter-section">
@@ -492,22 +616,17 @@
                     <label class="filter-label">Brand</label>
                     <select class="filter-select" id="brandFilter">
                         <option value="">All Brands</option>
-                        <option value="ALTO">ALTO</option>
-                        <option value="Mercedes">Mercedes</option>
-                        <option value="Audi">Audi</option>
-                        <option value="Toyota">Toyota</option>
-                        <option value="Honda">Honda</option>
-                        <option value="Hyundai">Hyundai</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Price Range</label>
                     <select class="filter-select" id="priceFilter">
                         <option value="">All Prices</option>
-                        <option value="0-1000000">Under ₹10 Lakh</option>
+                        <option value="0-100000">Under ₹1 Lakh</option>
+                        <option value="100000-500000">₹1-5 Lakh</option>
+                        <option value="500000-1000000">₹5-10 Lakh</option>
                         <option value="1000000-2000000">₹10-20 Lakh</option>
-                        <option value="2000000-3000000">₹20-30 Lakh</option>
-                        <option value="3000000-5000000">₹30-50 Lakh</option>
+                        <option value="2000000-5000000">₹20-50 Lakh</option>
                         <option value="5000000-10000000">Above ₹50 Lakh</option>
                     </select>
                 </div>
@@ -518,78 +637,32 @@
                         <option value="Petrol">Petrol</option>
                         <option value="Diesel">Diesel</option>
                         <option value="Electric">Electric</option>
-                        <option value="Hybrid">Hybrid</option>
+                        <option value="CNG">CNG</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label class="filter-label">Year</label>
-                    <select class="filter-select" id="yearFilter">
-                        <option value="">All Years</option>
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
-                        <option value="2021">2021</option>
-                        <option value="2020">2020</option>
-                        <option value="2020">2008</option>
+                    <label class="filter-label">Transmission</label>
+                    <select class="filter-select" id="transmissionFilter">
+                        <option value="">All Types</option>
+                        <option value="Manual">Manual</option>
+                        <option value="Automatic">Automatic</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">Search</label>
-                    <input type="text" class="filter-input" id="searchInput" placeholder="Search by model...">
+                    <input type="text" class="filter-input" id="searchInput" placeholder="Search by brand or model...">
                 </div>
             </div>
         </div>
 
         <div class="cars-grid" id="carsGrid">
-            {% for car in cars %}
-            <div class="car-card" data-car-id="{{ car._id }}">
-                <div class="car-image" style="background-image: url('{{ car.image }}')">
-                    <div class="car-overlay">
-                        <div class="status-badge {{ car.status }}">
-                            {{ car.status.capitalize() }}
-                        </div>
-                        <div class="car-actions">
-                            <button class="action-btn" onclick="toggleFavorite({{ car._id }})" title="Add to favorites">
-                                ♥
-                            </button>
-                            <button class="action-btn" onclick="shareCar({{ car._id }})" title="Share">
-                                📤
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="car-content">
-                    <h3 class="car-title">{{ car.brand }} {{ car.model }}</h3>
-                    <p class="car-details">{{ car.year }} • {{ "{:,}".format(car.kmDriven) }} km • {{ car.owner }} Owner</p>
-                    <div class="car-specs">
-                        <div class="spec-item">
-                            <div class="spec-value">{{ car.fuel }}</div>
-                            <div class="spec-label">Fuel</div>
-                        </div>
-                        <div class="spec-item">
-                            <div class="spec-value">{{ car.transmission }}</div>
-                            <div class="spec-label">Transmission</div>
-                        </div>
-                        <div class="spec-item">
-                            <div class="spec-value">{{ car.location }}</div>
-                            <div class="spec-label">Location</div>
-                        </div>
-                    </div>
-                    <div class="car-price">₹{{ "%.1f"|format(car.price / 100000) }} Lakh</div>
-                    <div class="car-actions-row">
-                        <button class="btn-primary" onclick="openCarModal({{ car._id }})" {{ 'disabled' if car.status != 'available' else '' }}>
-                            {{ 'View Details' if car.status == 'available' else ('Sold' if car.status == 'sold' else 'Pending') }}
-                        </button>
-                        <button class="btn-secondary" onclick="contactDealer({{ car._id }})" {{ 'disabled' if car.status != 'available' else '' }}>
-                            Contact
-                        </button>
-                    </div>
-                </div>
+            <div class="loading-container" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p style="color: #94a3b8;">Loading cars...</p>
             </div>
-            {% endfor %}
         </div>
 
-        <div class="load-more">
+        <div class="load-more" id="loadMoreSection" style="display:none;">
             <button class="load-more-btn" id="loadMoreBtn">Load More Cars</button>
         </div>
     </div>
@@ -602,219 +675,301 @@
                 <button class="modal-close" id="modalClose">×</button>
             </div>
             <div class="modal-body" id="modalBody">
-                <!-- Modal content will be populated by JavaScript -->
             </div>
         </div>
     </div>
 
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
     <script>
-        // Car data
-        // This script block is no longer needed as car data is rendered by Jinja2
-        // The JS functions below are kept for modal and action functionality
-
-        let currentCars = [];
-        let displayedCars = 0;
+        let allCars = [];
+        let filteredCars = [];
+        let displayedCount = 0;
         const carsPerPage = 6;
+        let favorites = JSON.parse(localStorage.getItem('carFavorites') || '[]');
 
-        // Initialize page
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // The cars array is now passed from the backend via Jinja2
-            // No need to re-fetch or re-render here.
-            // The Jinja2 loop handles the initial rendering.
+            loadCars();
             setupEventListeners();
         });
 
-        function displayCars() {
-            // This function is no longer needed as cars are rendered by Jinja2
-            // The load more button will be handled by Jinja2's loop
+        async function loadCars() {
+            try {
+                const response = await fetch('/api/car');
+                const data = await response.json();
+                
+                if (data.success && data.cars) {
+                    allCars = data.cars;
+                } else {
+                    allCars = [];
+                }
+            } catch (error) {
+                console.error('Error loading cars:', error);
+                allCars = [];
+            }
+
+            // Populate brand filter dynamically
+            const brands = [...new Set(allCars.map(c => c.brand).filter(Boolean))].sort();
+            const brandFilter = document.getElementById('brandFilter');
+            brands.forEach(brand => {
+                const opt = document.createElement('option');
+                opt.value = brand;
+                opt.textContent = brand;
+                brandFilter.appendChild(opt);
+            });
+
+            applyFilters();
         }
 
-        function createCarCard(car) {
-            // This function is no longer needed as cars are rendered by Jinja2
-            // The Jinja2 loop handles the creation of car cards.
-            // This function is kept for potential future use or if the Jinja2 loop is removed.
+        function applyFilters() {
+            const brand = document.getElementById('brandFilter').value;
+            const price = document.getElementById('priceFilter').value;
+            const fuel = document.getElementById('fuelFilter').value;
+            const transmission = document.getElementById('transmissionFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredCars = allCars.filter(car => {
+                if (brand && car.brand !== brand) return false;
+                if (fuel && car.fuel !== fuel) return false;
+                if (transmission && car.transmission !== transmission) return false;
+
+                if (price) {
+                    const [min, max] = price.split('-').map(Number);
+                    const carPrice = car.price || 0;
+                    if (carPrice < min || carPrice > max) return false;
+                }
+
+                if (search) {
+                    const searchStr = `${car.brand || ''} ${car.model || ''} ${car.location || ''}`.toLowerCase();
+                    if (!searchStr.includes(search)) return false;
+                }
+
+                return true;
+            });
+
+            displayedCount = 0;
+            document.getElementById('carsGrid').innerHTML = '';
+            document.getElementById('carCount').textContent = `${filteredCars.length} car${filteredCars.length !== 1 ? 's' : ''} found`;
+            
+            if (filteredCars.length === 0) {
+                document.getElementById('carsGrid').innerHTML = `
+                    <div class="no-cars-message" style="grid-column: 1/-1;">
+                        <span class="icon">🚗</span>
+                        <p>No cars found matching your filters.</p>
+                        <p style="margin-top:0.5rem; font-size: 0.9rem;">Try adjusting your search criteria.</p>
+                    </div>`;
+                document.getElementById('loadMoreSection').style.display = 'none';
+            } else {
+                displayNextBatch();
+            }
+        }
+
+        function displayNextBatch() {
+            const grid = document.getElementById('carsGrid');
+            const batch = filteredCars.slice(displayedCount, displayedCount + carsPerPage);
+            
+            batch.forEach((car, index) => {
+                const card = createCarCard(car, displayedCount + index);
+                grid.appendChild(card);
+            });
+
+            displayedCount += batch.length;
+
+            // Show/hide load more button
+            if (displayedCount < filteredCars.length) {
+                document.getElementById('loadMoreSection').style.display = 'block';
+                document.getElementById('loadMoreBtn').textContent = `Load More (${filteredCars.length - displayedCount} remaining)`;
+            } else {
+                document.getElementById('loadMoreSection').style.display = 'none';
+            }
+        }
+
+        function createCarCard(car, index) {
             const card = document.createElement('div');
             card.className = 'car-card';
-            card.dataset.carId = car.id;
+            card.style.animationDelay = `${(index % carsPerPage) * 0.1}s`;
+
+            const status = car.status || car.availability || 'available';
+            const statusClass = status === 'sold' ? 'sold' : status === 'pending' ? 'pending' : '';
+            const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+            const carId = car._id || car.id;
+            const isFav = favorites.includes(carId);
             
-            const statusClass = car.status === 'available' ? '' : 
-                              car.status === 'sold' ? 'sold' : 'pending';
-            
+            // Determine image
+            let imageHtml;
+            const imgSrc = car.image || (car.images && car.images[0]) || '';
+            if (imgSrc && !imgSrc.includes('placeholder')) {
+                imageHtml = `<div class="car-image" style="background-image: url('${imgSrc}')">`;
+            } else {
+                imageHtml = `<div class="car-image-placeholder">🚗</div><div class="car-image" style="display:none;">`;
+            }
+
+            const price = car.price || 0;
+            const kmDriven = car.km_driven || car.kmDriven || 0;
+            const owner = car.owner || 'N/A';
+            const brand = car.brand || 'Unknown';
+            const model = car.model || '';
+            const year = car.year || '';
+            const fuel = car.fuel || 'N/A';
+            const transmission = car.transmission || 'N/A';
+            const location = car.location || 'N/A';
+
+            let priceDisplay;
+            if (price >= 10000000) {
+                priceDisplay = `₹${(price / 10000000).toFixed(1)} Cr`;
+            } else if (price >= 100000) {
+                priceDisplay = `₹${(price / 100000).toFixed(1)} Lakh`;
+            } else {
+                priceDisplay = `₹${price.toLocaleString('en-IN')}`;
+            }
+
             card.innerHTML = `
-                <div class="car-image" style="background-image: url('${car.image}')">
+                <div style="position:relative;">
+                    ${imgSrc && !imgSrc.includes('placeholder') 
+                        ? `<div class="car-image" style="background-image: url('${imgSrc}')">` 
+                        : `<div class="car-image-placeholder">🚗`}
+                    </div>
                     <div class="car-overlay">
-                        <div class="status-badge ${statusClass}">
-                            ${car.status.charAt(0).toUpperCase() + car.status.slice(1)}
-                        </div>
+                        <div class="status-badge ${statusClass}">${statusText}</div>
                         <div class="car-actions">
-                            <button class="action-btn" onclick="toggleFavorite(${car.id})" title="Add to favorites">
-                                ♥
-                            </button>
-                            <button class="action-btn" onclick="shareCar(${car.id})" title="Share">
-                                📤
-                            </button>
+                            <button class="action-btn ${isFav ? 'favorited' : ''}" onclick="event.stopPropagation(); toggleFavorite('${carId}', this)" title="Add to favorites">♥</button>
+                            <button class="action-btn" onclick="event.stopPropagation(); shareCar('${carId}')" title="Share">📤</button>
                         </div>
                     </div>
                 </div>
                 <div class="car-content">
-                    <h3 class="car-title">${car.brand} ${car.model}</h3>
-                    <p class="car-details">${car.year} • ${car.kmDriven.toLocaleString()} km • ${car.owner} Owner</p>
+                    <h3 class="car-title">${brand} ${model}</h3>
+                    <p class="car-details">${year} • ${kmDriven.toLocaleString('en-IN')} km • ${owner} Owner</p>
                     <div class="car-specs">
                         <div class="spec-item">
-                            <div class="spec-value">${car.fuel}</div>
+                            <div class="spec-value">${fuel}</div>
                             <div class="spec-label">Fuel</div>
                         </div>
                         <div class="spec-item">
-                            <div class="spec-value">${car.transmission}</div>
+                            <div class="spec-value">${transmission}</div>
                             <div class="spec-label">Transmission</div>
                         </div>
                         <div class="spec-item">
-                            <div class="spec-value">${car.location}</div>
+                            <div class="spec-value">${location}</div>
                             <div class="spec-label">Location</div>
                         </div>
                     </div>
-                    <div class="car-price">₹${(car.price / 100000).toFixed(1)} Lakh</div>
+                    <div class="car-price">${priceDisplay}</div>
                     <div class="car-actions-row">
-                        <button class="btn-primary" onclick="openCarModal(${car.id})" ${car.status !== 'available' ? 'disabled' : ''}>
-                            ${car.status === 'available' ? 'View Details' : car.status === 'sold' ? 'Sold' : 'Pending'}
+                        <button class="btn-primary" onclick="event.stopPropagation(); openCarModal('${carId}')" ${status !== 'available' ? 'disabled' : ''}>
+                            ${status === 'available' ? 'View Details' : statusText}
                         </button>
-                        <button class="btn-secondary" onclick="contactDealer(${car.id})" ${car.status !== 'available' ? 'disabled' : ''}>
+                        <button class="btn-secondary" onclick="event.stopPropagation(); contactDealer('${carId}')" ${status !== 'available' ? 'disabled' : ''}>
                             Contact
                         </button>
                     </div>
                 </div>
             `;
-            
+
+            card.addEventListener('click', () => openCarModal(carId));
             return card;
         }
 
         function setupEventListeners() {
-            // Load more button
-            document.getElementById('loadMoreBtn').addEventListener('click', displayCars);
-            
-            // Filter listeners
+            document.getElementById('loadMoreBtn').addEventListener('click', displayNextBatch);
             document.getElementById('brandFilter').addEventListener('change', applyFilters);
             document.getElementById('priceFilter').addEventListener('change', applyFilters);
             document.getElementById('fuelFilter').addEventListener('change', applyFilters);
-            document.getElementById('yearFilter').addEventListener('change', applyFilters);
-            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('transmissionFilter').addEventListener('change', applyFilters);
             
-            // Modal listeners
+            let searchTimeout;
+            document.getElementById('searchInput').addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(applyFilters, 300);
+            });
+
             document.getElementById('modalClose').addEventListener('click', closeCarModal);
             document.getElementById('carModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeCarModal();
-                }
+                if (e.target === this) closeCarModal();
             });
-            
-            // Keyboard navigation
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeCarModal();
-                }
+                if (e.key === 'Escape') closeCarModal();
             });
-        }
-
-        function applyFilters() {
-            // This function is no longer needed as filtering is handled by Jinja2
-            // The Jinja2 loop already filters the cars array.
-            // This function is kept for potential future use or if the Jinja2 loop is removed.
-            const brandFilter = document.getElementById('brandFilter').value;
-            const priceFilter = document.getElementById('priceFilter').value;
-            const fuelFilter = document.getElementById('fuelFilter').value;
-            const yearFilter = document.getElementById('yearFilter').value;
-            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-            
-            // The cars array is now passed from the backend via Jinja2
-            // No need to re-filter here.
         }
 
         function openCarModal(carId) {
-            // This function is no longer needed as car data is rendered by Jinja2
-            // The modal content is populated by Jinja2.
-            // This function is kept for potential future use or if the Jinja2 loop is removed.
-            const car = cars.find(c => c.id === carId); // This line will cause an error as 'cars' is not defined
+            const car = allCars.find(c => (c._id || c.id) === carId);
             if (!car) return;
-            
-            document.getElementById('modalTitle').textContent = `${car.brand} ${car.model}`;
-            
+
+            const brand = car.brand || 'Unknown';
+            const model = car.model || '';
+            document.getElementById('modalTitle').textContent = `${brand} ${model}`;
+
+            const price = car.price || 0;
+            const kmDriven = car.km_driven || car.kmDriven || 0;
+            const imgSrc = car.image || (car.images && car.images[0]) || '';
+            const features = car.features || [];
+
+            let priceDisplay;
+            if (price >= 10000000) priceDisplay = `₹${(price / 10000000).toFixed(1)} Cr`;
+            else if (price >= 100000) priceDisplay = `₹${(price / 100000).toFixed(1)} Lakh`;
+            else priceDisplay = `₹${price.toLocaleString('en-IN')}`;
+
             const modalBody = document.getElementById('modalBody');
             modalBody.innerHTML = `
-                <div class="modal-image" style="background-image: url('${car.image}')"></div>
+                <div class="modal-image" ${imgSrc && !imgSrc.includes('placeholder') ? `style="background-image: url('${imgSrc}')"` : ''}>
+                    ${!imgSrc || imgSrc.includes('placeholder') ? '🚗' : ''}
+                </div>
+                <div style="font-size: 2rem; font-weight: 800; color: #3b82f6; margin-bottom: 1rem;">${priceDisplay}</div>
                 <div class="modal-details">
                     <div class="modal-spec">
-                        <span class="modal-spec-label">Price:</span>
-                        <span class="modal-spec-value">₹${(car.price / 100000).toFixed(1)} Lakh</span>
-                    </div>
-                    <div class="modal-spec">
                         <span class="modal-spec-label">Year:</span>
-                        <span class="modal-spec-value">${car.year}</span>
+                        <span class="modal-spec-value">${car.year || 'N/A'}</span>
                     </div>
                     <div class="modal-spec">
                         <span class="modal-spec-label">Fuel Type:</span>
-                        <span class="modal-spec-value">${car.fuel}</span>
+                        <span class="modal-spec-value">${car.fuel || 'N/A'}</span>
                     </div>
                     <div class="modal-spec">
                         <span class="modal-spec-label">Transmission:</span>
-                        <span class="modal-spec-value">${car.transmission}</span>
+                        <span class="modal-spec-value">${car.transmission || 'N/A'}</span>
                     </div>
                     <div class="modal-spec">
                         <span class="modal-spec-label">KM Driven:</span>
-                        <span class="modal-spec-value">${car.kmDriven.toLocaleString()} km</span>
+                        <span class="modal-spec-value">${kmDriven.toLocaleString('en-IN')} km</span>
                     </div>
                     <div class="modal-spec">
                         <span class="modal-spec-label">Owner:</span>
-                        <span class="modal-spec-value">${car.owner}</span>
+                        <span class="modal-spec-value">${car.owner || 'N/A'}</span>
                     </div>
                     <div class="modal-spec">
                         <span class="modal-spec-label">Location:</span>
-                        <span class="modal-spec-value">${car.location}</span>
+                        <span class="modal-spec-value">${car.location || 'N/A'}</span>
                     </div>
-                    <div class="modal-spec">
-                        <span class="modal-spec-label">Engine:</span>
-                        <span class="modal-spec-value">${car.engine}</span>
-                    </div>
-                    <div class="modal-spec">
-                        <span class="modal-spec-label">Power:</span>
-                        <span class="modal-spec-value">${car.power}</span>
-                    </div>
-                    <div class="modal-spec">
-                        <span class="modal-spec-label">Mileage:</span>
-                        <span class="modal-spec-value">${car.mileage}</span>
-                    </div>
-                    <div class="modal-spec">
-                        <span class="modal-spec-label">Color:</span>
-                        <span class="modal-spec-value">${car.color}</span>
-                    </div>
-                    <div class="modal-spec">
-                        <span class="modal-spec-label">Seats:</span>
-                        <span class="modal-spec-value">${car.seats}</span>
-                    </div>
+                    ${car.engine ? `<div class="modal-spec"><span class="modal-spec-label">Engine:</span><span class="modal-spec-value">${car.engine}</span></div>` : ''}
+                    ${car.power ? `<div class="modal-spec"><span class="modal-spec-label">Power:</span><span class="modal-spec-value">${car.power}</span></div>` : ''}
+                    ${car.mileage ? `<div class="modal-spec"><span class="modal-spec-label">Mileage:</span><span class="modal-spec-value">${car.mileage}</span></div>` : ''}
+                    ${car.color ? `<div class="modal-spec"><span class="modal-spec-label">Color:</span><span class="modal-spec-value">${car.color}</span></div>` : ''}
+                    ${car.seats ? `<div class="modal-spec"><span class="modal-spec-label">Seats:</span><span class="modal-spec-value">${car.seats}</span></div>` : ''}
+                    ${car.seller_type ? `<div class="modal-spec"><span class="modal-spec-label">Seller:</span><span class="modal-spec-value">${car.seller_type}</span></div>` : ''}
                 </div>
-                <div style="margin-bottom: 1rem;">
-                    <h4 style="color: #3b82f6; margin-bottom: 0.5rem;">Features:</h4>
-                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                        ${car.features.map(feature => `
-                            <span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 0.3rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
-                                ${feature}
-                            </span>
-                        `).join('')}
+                ${features.length > 0 ? `
+                    <div style="margin-bottom: 1rem;">
+                        <h4 style="color: #3b82f6; margin-bottom: 0.5rem;">Features:</h4>
+                        <div class="modal-features">
+                            ${features.map(f => `<span class="feature-tag">${f}</span>`).join('')}
+                        </div>
                     </div>
-                </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: #3b82f6; margin-bottom: 0.5rem;">Description:</h4>
-                    <p style="color: #94a3b8; line-height: 1.6;">${car.description}</p>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button class="btn-primary" onclick="contactDealer(${car.id})" style="flex: 1;">
-                        Contact Dealer
-                    </button>
-                    <button class="btn-secondary" onclick="scheduleTestDrive(${car.id})" style="flex: 1;">
-                        Schedule Test Drive
-                    </button>
+                ` : ''}
+                ${car.description ? `
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="color: #3b82f6; margin-bottom: 0.5rem;">Description:</h4>
+                        <p style="color: #94a3b8; line-height: 1.6;">${car.description}</p>
+                    </div>
+                ` : ''}
+                <div class="modal-actions">
+                    <button class="btn-primary" onclick="contactDealer('${carId}')">Contact Dealer</button>
+                    <button class="btn-secondary" onclick="scheduleTestDrive('${carId}')">Schedule Test Drive</button>
                 </div>
             `;
-            
+
             document.getElementById('carModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -824,68 +979,61 @@
             document.body.style.overflow = 'auto';
         }
 
-        function toggleFavorite(carId) {
-            // Add to favorites functionality
-            console.log('Added car to favorites:', carId);
-            // You can implement local storage or API call here
+        function toggleFavorite(carId, btn) {
+            const idx = favorites.indexOf(carId);
+            if (idx === -1) {
+                favorites.push(carId);
+                if (btn) btn.classList.add('favorited');
+                showToast('Added to favorites ♥');
+            } else {
+                favorites.splice(idx, 1);
+                if (btn) btn.classList.remove('favorited');
+                showToast('Removed from favorites');
+            }
+            localStorage.setItem('carFavorites', JSON.stringify(favorites));
         }
 
         function shareCar(carId) {
-            // This function is no longer needed as car data is rendered by Jinja2
-            // The modal content is populated by Jinja2.
-            // This function is kept for potential future use or if the Jinja2 loop is removed.
-            const car = cars.find(c => c.id === carId); // This line will cause an error as 'cars' is not defined
-            if (car && navigator.share) {
+            const car = allCars.find(c => (c._id || c.id) === carId);
+            if (!car) return;
+            
+            const shareText = `Check out this ${car.brand} ${car.model || ''} for ₹${((car.price || 0) / 100000).toFixed(1)} Lakh on UsedCarValue AI!`;
+            
+            if (navigator.share) {
                 navigator.share({
-                    title: `${car.brand} ${car.model}`,
-                    text: `Check out this ${car.brand} ${car.model} for ₹${(car.price / 100000).toFixed(1)} Lakh`,
-                    url: window.location.href
-                });
+                    title: `${car.brand} ${car.model || ''}`,
+                    text: shareText,
+                    url: window.location.origin + '/cars'
+                }).catch(() => {});
             } else {
-                // Fallback for browsers that don't support Web Share API
-                const shareText = `Check out this ${car.brand} ${car.model} for ₹${(car.price / 100000).toFixed(1)} Lakh`;
                 navigator.clipboard.writeText(shareText).then(() => {
-                    alert('Car details copied to clipboard!');
+                    showToast('Car details copied to clipboard!');
+                }).catch(() => {
+                    showToast('Could not copy to clipboard');
                 });
             }
         }
 
         function contactDealer(carId) {
-            // This function is no longer needed as car data is rendered by Jinja2
-            // The modal content is populated by Jinja2.
-            // This function is kept for potential future use or if the Jinja2 loop is removed.
-            const car = cars.find(c => c.id === carId); // This line will cause an error as 'cars' is not defined
-            if (car) {
-                // Simulate contact functionality
-                alert(`Thank you for your interest in ${car.brand} ${car.model}! A dealer will contact you soon.`);
-                // You can implement actual contact form or phone call functionality here
-            }
+            const car = allCars.find(c => (c._id || c.id) === carId);
+            if (!car) return;
+            const subject = `Inquiry about ${car.brand} ${car.model || ''}`;
+            window.location.href = `/contact?subject=${encodeURIComponent(subject)}`;
         }
 
         function scheduleTestDrive(carId) {
-            // This function is no longer needed as car data is rendered by Jinja2
-            // The modal content is populated by Jinja2.
-            // This function is kept for potential future use or if the Jinja2 loop is removed.
-            const car = cars.find(c => c.id === carId); // This line will cause an error as 'cars' is not defined
-            if (car) {
-                // Simulate test drive scheduling
-                alert(`Test drive scheduled for ${car.brand} ${car.model}! You will receive confirmation shortly.`);
-                // You can implement actual scheduling functionality here
-            }
+            const car = allCars.find(c => (c._id || c.id) === carId);
+            if (!car) return;
+            const subject = `Test Drive for ${car.brand} ${car.model || ''}`;
+            window.location.href = `/contact?subject=${encodeURIComponent(subject)}`;
         }
 
-        // Add smooth scrolling for navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
     </script>
 </body>
 </html>

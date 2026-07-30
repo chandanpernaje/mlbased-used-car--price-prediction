@@ -346,10 +346,8 @@
         </div>
 
         <div class="nav-links">
-            <a href="/admin/users" class="active">Active Users</a>
-            <a href="/admin/deleted-users">Deleted Users</a>
-            <a href="/admin/stats">Statistics</a>
-            <a href="/admin/test-connection">Test Connection</a>
+            <a href="/admin/users" class="{% if active_tab == 'users' %}active{% endif %}">Active Users</a>
+            <a href="/admin/deleted-users" class="{% if active_tab == 'deleted' %}active{% endif %}">Deleted Users</a>
         </div>
 
         <div class="stats-grid">
@@ -379,10 +377,8 @@
 
         <div class="search-section">
             <div class="actions">
-                <a href="/admin/stats" class="btn btn-info">View Stats</a>
-                <a href="/admin/users/json" class="btn btn-success">Export JSON</a>
-                <a href="/admin/deleted-users" class="btn btn-danger">View Deleted Users</a>
-                <a href="/admin/test-connection" class="btn btn-primary">Test Connection</a>
+                <a href="/admin/users/json" class="btn btn-success" target="_blank">Export JSON</a>
+                <button onclick="testConnection()" class="btn btn-primary">Test Connection</button>
                 <button onclick="location.reload()" class="refresh-btn">Refresh</button>
             </div>
             <input type="text" class="search-box" placeholder="Search users by username or email..." id="searchInput">
@@ -578,6 +574,23 @@
                 document.getElementById('deletedUsers').textContent = data.deleted_users;
             })
             .catch(error => console.error('Error fetching initial stats:', error));
+
+        // Test connection function
+        function testConnection() {
+            fetch('/admin/test-connection')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert(data.message, 'success');
+                    } else {
+                        showAlert('Error: ' + data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Error testing DB connection', 'error');
+                });
+        }
     </script>
 </body>
 </html>
