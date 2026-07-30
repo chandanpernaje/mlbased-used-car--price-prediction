@@ -348,28 +348,26 @@
         <div class="nav-links">
             <a href="/admin/users" class="{% if active_tab == 'users' %}active{% endif %}">Active Users</a>
             <a href="/admin/deleted-users" class="{% if active_tab == 'deleted' %}active{% endif %}">Deleted Users</a>
+            <a href="/admin/cars" class="{% if active_tab == 'cars' %}active{% endif %}">Manage Cars</a>
+            <a href="/admin/contacts" class="{% if active_tab == 'contacts' %}active{% endif %}">Contact Inquiries</a>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number" id="totalUsers">{{ users|length }}</div>
+                <div class="stat-number" id="totalUsers">-</div>
                 <div class="stat-label">Total Users</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="activeUsers">
-                    {{ users|selectattr('is_active', 'equalto', true)|list|length }}
-                </div>
+                <div class="stat-number" id="activeUsers">-</div>
                 <div class="stat-label">Active Users</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="inactiveUsers">
-                    {{ users|selectattr('is_active', 'equalto', false)|list|length }}
-                </div>
-                <div class="stat-label">Inactive Users</div>
+                <div class="stat-number" id="totalCars">-</div>
+                <div class="stat-label">Total Cars</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="deletedUsers">-</div>
-                <div class="stat-label">Deleted Users</div>
+                <div class="stat-number" id="pendingContacts">-</div>
+                <div class="stat-label">Pending Inquiries</div>
             </div>
         </div>
 
@@ -377,55 +375,150 @@
 
         <div class="search-section">
             <div class="actions">
-                <a href="/admin/users/json" class="btn btn-success" target="_blank">Export JSON</a>
+                {% if active_tab == 'users' or active_tab == 'deleted' %}
+                    <a href="/admin/users/json" class="btn btn-success" target="_blank">Export JSON</a>
+                {% elif active_tab == 'cars' %}
+                    <button onclick="showAddCarModal()" class="btn btn-success">Add New Car</button>
+                {% endif %}
                 <button onclick="testConnection()" class="btn btn-primary">Test Connection</button>
                 <button onclick="location.reload()" class="refresh-btn">Refresh</button>
             </div>
-            <input type="text" class="search-box" placeholder="Search users by username or email..." id="searchInput">
+            <input type="text" class="search-box" placeholder="Search..." id="searchInput">
         </div>
 
         <div class="table-container">
-            {% if users %}
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th>User ID</th>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Created At</th>
-                            <th>Last Login</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTableBody">
-                        {% for user in users %}
-                        <tr>
-                            <td class="user-id">{{ user._id }}</td>
-                            <td><strong>{{ user.username }}</strong></td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
-                                    {% if user.is_active %}Active{% else %}Inactive{% endif %}
-                                </span>
-                            </td>
-                            <td>{{ user.created_at[:19] if user.created_at else 'N/A' }}</td>
-                            <td>{{ user.last_login[:19] if user.last_login else 'Never' }}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="view-btn" onclick="viewUser('{{ user._id }}')">View</button>
-                                    <button class="delete-btn" onclick="showDeleteModal('{{ user._id }}', '{{ user.username }}')">Delete</button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <div class="no-users">
-                    <h3>No users found in the database</h3>
-                    <p>Register some users to see them here.</p>
-                </div>
+            {% if active_tab == 'users' or active_tab == 'deleted' %}
+                {% if users %}
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            {% for user in users %}
+                            <tr>
+                                <td class="user-id">{{ user._id }}</td>
+                                <td><strong>{{ user.username }}</strong></td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                        {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ user.created_at }}</td>
+                                <td>{{ user.last_login }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="view-btn" onclick="viewUser('{{ user._id }}')">View</button>
+                                        <button class="delete-btn" onclick="showDeleteModal('{{ user._id }}', '{{ user.username }}')">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-users">
+                        <h3>No users found in the database</h3>
+                        <p>Register some users to see them here.</p>
+                    </div>
+                {% endif %}
+            {% elif active_tab == 'cars' %}
+                {% if cars %}
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Brand & Model</th>
+                                <th>Year</th>
+                                <th>Price</th>
+                                <th>Fuel</th>
+                                <th>Location</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="carsTableBody">
+                            {% for car in cars %}
+                            <tr id="car-{{ car._id }}">
+                                <td>
+                                    {% if car.image %}
+                                        <img src="{{ car.image }}" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;" alt="car">
+                                    {% else %}
+                                        <div style="width: 60px; height: 40px; background: #eee; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">No Image</div>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ car.brand }} {{ car.model }}</strong></td>
+                                <td>{{ car.year }}</td>
+                                <td>₹{{ "{:,.0f}".format(car.price) if car.price is number else car.price }}</td>
+                                <td>{{ car.fuel }}</td>
+                                <td>{{ car.location }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="delete-btn" onclick="deleteCar('{{ car._id }}')">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-users">
+                        <h3>No cars found in the database</h3>
+                    </div>
+                {% endif %}
+            {% elif active_tab == 'contacts' %}
+                {% if contacts %}
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Name / Email</th>
+                                <th>Phone</th>
+                                <th>Subject</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contactsTableBody">
+                            {% for contact in contacts %}
+                            <tr id="contact-{{ contact._id }}">
+                                <td>
+                                    <strong>{{ contact.name }}</strong><br>
+                                    <small style="color: #666;">{{ contact.email }}</small>
+                                </td>
+                                <td>{{ contact.phone or 'N/A' }}</td>
+                                <td>{{ contact.subject }}</td>
+                                <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ contact.message }}">
+                                    {{ contact.message }}
+                                </td>
+                                <td>
+                                    <span class="status-badge {% if contact.status == 'new' %}status-inactive{% else %}status-active{% endif %}" id="badge-{{ contact._id }}">
+                                        {{ contact.status|capitalize }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        {% if contact.status == 'new' %}
+                                            <button class="view-btn" onclick="resolveContact('{{ contact._id }}')" id="resolve-btn-{{ contact._id }}">Mark Resolved</button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="no-users">
+                        <h3>No inquiries found</h3>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
     </div>
@@ -447,6 +540,55 @@
                 <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
                 <button class="btn btn-danger" onclick="confirmDelete()">Delete User</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Add Car Modal -->
+    <div id="addCarModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closeAddCarModal()">&times;</span>
+            <h2>Add New Car</h2>
+            <form id="addCarForm" onsubmit="submitAddCar(event)">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div class="form-group">
+                        <label for="carBrand">Brand:</label>
+                        <input type="text" id="carBrand" required placeholder="e.g., Hyundai" class="search-box" style="width:100%;">
+                    </div>
+                    <div class="form-group">
+                        <label for="carModel">Model:</label>
+                        <input type="text" id="carModel" required placeholder="e.g., Creta" class="search-box" style="width:100%;">
+                    </div>
+                    <div class="form-group">
+                        <label for="carYear">Year:</label>
+                        <input type="number" id="carYear" required min="1990" max="2026" placeholder="2021" class="search-box" style="width:100%;">
+                    </div>
+                    <div class="form-group">
+                        <label for="carPrice">Price (₹):</label>
+                        <input type="number" id="carPrice" required placeholder="950000" class="search-box" style="width:100%;">
+                    </div>
+                    <div class="form-group">
+                        <label for="carFuel">Fuel Type:</label>
+                        <select id="carFuel" required class="search-box" style="width:100%; height:45px;">
+                            <option value="Petrol">Petrol</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="CNG">CNG</option>
+                            <option value="Electric">Electric</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="carLocation">Location:</label>
+                        <input type="text" id="carLocation" required placeholder="Bangalore" class="search-box" style="width:100%;">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="carImage">Image URL (Optional):</label>
+                    <input type="text" id="carImage" placeholder="/static/creta_user.jpg" class="search-box" style="width:100%;">
+                </div>
+                <div class="modal-buttons" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddCarModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Car</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -548,32 +690,31 @@
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('deleteModal');
-            if (event.target == modal) {
+            const deleteModal = document.getElementById('deleteModal');
+            const addCarModal = document.getElementById('addCarModal');
+            if (event.target == deleteModal) {
                 closeDeleteModal();
+            } else if (event.target == addCarModal) {
+                closeAddCarModal();
             }
         }
 
-        // Auto-refresh stats every 30 seconds
-        setInterval(function() {
+        // Load stats function
+        function loadStats() {
             fetch('/admin/stats')
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('totalUsers').textContent = data.total_users;
                     document.getElementById('activeUsers').textContent = data.active_users;
-                    document.getElementById('inactiveUsers').textContent = data.inactive_users;
-                    document.getElementById('deletedUsers').textContent = data.deleted_users;
+                    document.getElementById('totalCars').textContent = data.total_cars || '0';
+                    document.getElementById('pendingContacts').textContent = data.pending_contacts || '0';
                 })
                 .catch(error => console.error('Error fetching stats:', error));
-        }, 30000);
+        }
 
-        // Initial load of deleted users count
-        fetch('/admin/stats')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('deletedUsers').textContent = data.deleted_users;
-            })
-            .catch(error => console.error('Error fetching initial stats:', error));
+        // Auto-refresh stats every 30 seconds
+        setInterval(loadStats, 30000);
+        loadStats(); // Initial load
 
         // Test connection function
         function testConnection() {
@@ -590,6 +731,90 @@
                     console.error('Error:', error);
                     showAlert('Error testing DB connection', 'error');
                 });
+        }
+
+        // Add Car Modal Functions
+        function showAddCarModal() {
+            document.getElementById('addCarModal').style.display = 'block';
+        }
+        function closeAddCarModal() {
+            document.getElementById('addCarModal').style.display = 'none';
+            document.getElementById('addCarForm').reset();
+        }
+        function submitAddCar(e) {
+            e.preventDefault();
+            const carData = {
+                brand: document.getElementById('carBrand').value,
+                model: document.getElementById('carModel').value,
+                year: parseInt(document.getElementById('carYear').value),
+                price: parseFloat(document.getElementById('carPrice').value),
+                fuel: document.getElementById('carFuel').value,
+                location: document.getElementById('carLocation').value,
+                image: document.getElementById('carImage').value || '',
+                transmission: 'Manual',
+                km_driven: 30000,
+                owner: 'First Owner',
+                status: 'available'
+            };
+
+            fetch('/api/car', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(carData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    showAlert('Car listing added successfully!', 'success');
+                    closeAddCarModal();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showAlert('Error: ' + data.error, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showAlert('Failed to save car listing', 'error');
+            });
+        }
+
+        // Delete car listing
+        function deleteCar(carId) {
+            if(!confirm("Are you sure you want to delete this car listing?")) return;
+            fetch(`/api/car/${carId}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    showAlert('Car listing deleted successfully!', 'success');
+                    document.getElementById(`car-${carId}`).remove();
+                } else {
+                    showAlert('Error: ' + data.error, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showAlert('Failed to delete car listing', 'error');
+            });
+        }
+
+        // Resolve Inquiry
+        function resolveContact(contactId) {
+            fetch(`/admin/contact/${contactId}/resolve`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    showAlert('Inquiry marked as resolved!', 'success');
+                    document.getElementById(`badge-${contactId}`).className = "status-badge status-active";
+                    document.getElementById(`badge-${contactId}`).textContent = "Resolved";
+                    document.getElementById(`resolve-btn-${contactId}`).remove();
+                } else {
+                    showAlert('Error: ' + data.error, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showAlert('Failed to resolve inquiry', 'error');
+            });
         }
     </script>
 </body>

@@ -930,16 +930,27 @@ def contact():
     subject = request.args.get('subject', '')
     return render_template('contact.html', prefilled_subject=subject)
 
+def format_user_dates(user_list):
+    for u in user_list:
+        u['_id'] = str(u['_id'])
+        u['is_active'] = u.get('is_active', True)
+        for date_field in ['created_at', 'last_login']:
+            val = u.get(date_field)
+            if isinstance(val, datetime):
+                u[date_field] = val.strftime('%Y-%m-%d %H:%M:%S')
+            elif val:
+                u[date_field] = str(val)
+            else:
+                u[date_field] = 'N/A' if date_field == 'created_at' else 'Never'
+    return user_list
+
 @app.route('/admin')
 @app.route('/admin/users')
 def admin_users():
     """Admin active users panel"""
     try:
-        # Fetch active users (is_active is True, or field doesn't exist)
         users = list(db.users_collection.find({'$or': [{'is_active': True}, {'is_active': {'$exists': False}}]}))
-        for u in users:
-            u['_id'] = str(u['_id'])
-            u['is_active'] = u.get('is_active', True)
+        users = format_user_dates(users)
         return render_template('admin_users.html', users=users, active_tab='users')
     except Exception as e:
         logger.error(f"Admin users error: {e}")
@@ -949,15 +960,43 @@ def admin_users():
 def admin_deleted_users():
     """Admin deleted/deactivated users panel"""
     try:
-        # Fetch inactive users (is_active is False)
         users = list(db.users_collection.find({'is_active': False}))
-        for u in users:
-            u['_id'] = str(u['_id'])
-            u['is_active'] = False
+        users = format_user_dates(users)
         return render_template('admin_users.html', users=users, active_tab='deleted')
     except Exception as e:
         logger.error(f"Admin deleted users error: {e}")
         return render_template('admin_users.html', users=[], active_tab='deleted')
+
+@app.route('/admin/cars')
+def admin_cars():
+    """Admin car listings panel"""
+    try:
+        cars = list(db.db['cars'].find())
+        for c in cars:
+            c['_id'] = str(c['_id'])
+        return render_template('admin_users.html', cars=cars, active_tab='cars')
+    except Exception as e:
+        logger.error(f"Admin cars error: {e}")
+        return render_template('admin_users.html', cars=[], active_tab='cars')
+
+@app.route('/admin/contacts')
+def admin_contacts():
+    """Admin contact inquiries panel"""
+    try:
+        contacts = list(db.db['contacts'].find().sort('created_at', -1))
+        for c in contacts:
+            c['_id'] = str(c['_id'])
+            val = c.get('created_at')
+            if isinstance(val, datetime):
+                c['created_at'] = val.strftime('%Y-%m-%d %H:%M:%S')
+            elif val:
+                c['created_at'] = str(val)
+            else:
+                c['created_at'] = 'N/A'
+        return render_template('admin_users.html', contacts=contacts, active_tab='contacts')
+    except Exception as e:
+        logger.error(f"Admin contacts error: {e}")
+        return render_template('admin_users.html', contacts=[], active_tab='contacts')
 
 @app.route('/admin/stats')
 def admin_stats():
@@ -966,11 +1005,19 @@ def admin_stats():
         total = db.users_collection.count_documents({})
         active = db.users_collection.count_documents({'$or': [{'is_active': True}, {'is_active': {'$exists': False}}]})
         inactive = db.users_collection.count_documents({'is_active': False})
+        
+        cars_count = db.db['cars'].count_documents({})
+        contacts_count = db.db['contacts'].count_documents({})
+        contacts_pending = db.db['contacts'].count_documents({'status': 'new'})
+        
         return jsonify({
             'total_users': total,
             'active_users': active,
             'inactive_users': inactive,
-            'deleted_users': inactive
+            'deleted_users': inactive,
+            'total_cars': cars_count,
+            'total_contacts': contacts_count,
+            'pending_contacts': contacts_pending
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
