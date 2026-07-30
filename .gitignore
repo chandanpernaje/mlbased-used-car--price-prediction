@@ -7,12 +7,7 @@ dist/
 build/
 .vercel/
 .env.local
-*.pkl
-best_car_price_model.pkl
 car_price_random_forest_model.pkl
-car_price_scaler.pkl
-feature_columns.pkl
-label_encoders.pkl
 .DS_Store
 .ipynb_checkpoints/
 Untitled*.ipynb
